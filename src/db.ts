@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI: string = process.env.MONGO_URI!;
 // Connect to MongoDB cloud
 mongoose
     .connect(MONGO_URI, {

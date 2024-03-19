@@ -1,6 +1,12 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document } from 'mongoose';
 
-const taskSchema = new mongoose.Schema({
+interface ITask extends Document {
+    description: string;
+    completed: string;
+    owner: mongoose.Schema.Types.ObjectId;
+}
+
+const taskSchema: Schema = new Schema({
     description: { type: String, required: true },
     completed: { type: String, default: 'READY' },
     owner:{
@@ -12,5 +18,5 @@ const taskSchema = new mongoose.Schema({
     timestamps: true
 });
 
-const Task = mongoose.model('Task', taskSchema);
-module.exports = Task;
+const Task = mongoose.model<ITask>('Task', taskSchema);
+export default Task;

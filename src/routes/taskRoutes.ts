@@ -1,109 +1,105 @@
-const express = require('express');
-const router = express.Router();
+import express, { Request, Response, Router } from 'express';
+import auth from '../middlewares/auth';
+import Task from '../models/Task';
+import { Document } from 'mongodb';
 
-const auth = require('../middlewares/auth');
-const Task = require('../models/Task');
 
-//create a task
+interface RequestWithUser extends Request {
+    user?: { _id?: string };
+}
 
-router.post('/', auth, async (req, res) => {
-   try{
-    const task = new Task({
-        ...req.body,
-        owner: req.user._id
-    });
-    await task.save();
-    res.status(201).json({task, message: "Task Created Successfully"});
-   }
-   catch(err){
-         res.status(400).send({error: err});
-   }
+const router: Router = express.Router();
+
+// create a task
+router.post('/', auth, async (req: RequestWithUser, res: Response) => {
+    try {
+        const task = new Task({
+            ...req.body,
+            owner: req.user?._id
+        });
+        await task.save();
+        res.status(201).json({message: "Task Created Successfully" });
+    }
+    catch (err) {
+        res.status(400).send({ error: err });
+    }
 });
 
 // get user tasks
-
-router.get('/', auth, async (req, res) => {
-    try{
+router.get('/', auth, async (req: RequestWithUser, res: Response) => {
+    try {
         const tasks = await Task.find({
-            owner: req.user._id
-        })
-        res.status(200).json({tasks, count: tasks.length, message: "Tasks Fetched Successfully"});
+            owner: req.user?._id
+        });
+        res.status(200).json({count: tasks.length, message: "Tasks Fetched Successfully" });
     }
-    catch(err){
-        res.status(500).send({error: err});
+    catch (err) {
+        res.status(500).send({ error: err });
     }
 });
 
-//fetch a task by id
-
-router.get('/:id', auth , async (req,res)=>{
+// fetch a task by id
+router.get('/:id', auth, async (req: RequestWithUser, res: Response) => {
     const taskid = req.params.id;
-
-    try{
+    try {
         const task = await Task.findOne({
             _id: taskid,
-            owner: req.user._id
+            owner: req.user?._id
         });
-        if(!task){
-            return res.status(404).json({message: "Task not found"});
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
         }
-        res.status(200).json({task, message: "Task Fetched Successfully"});
+        res.status(200).json({message: "Task Fetched Successfully" });
     }
-    catch(err){
-        res.status(500).send({error: err});
+    catch (err) {
+        res.status(500).send({ error: err });
     }
-})
+});
 
 // update a task by id
-router.patch('/:id', auth , async (req,res)=>{
+router.patch('/:id', auth, async (req: RequestWithUser, res: Response) => {
     const taskid = req.params.id;
     const updates = Object.keys(req.body);
     const allowedUpdates = ['description', 'completed'];
     const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-
-    if(!isValidOperation){
-        return res.status(400).json({error: "Invalid Updates"});
+    if (!isValidOperation) {
+        return res.status(400).json({ error: "Invalid Updates" });
     }
-
-    try{
-      const task = await Task.findOne({
+    try {
+        const task:Document | null = await Task.findOne({
             _id: taskid,
-            owner: req.user._id
-      });
-
-        if(!task){
-            return res.status(404).json({message: "Task not found"});
+            owner: req.user?._id
+        });
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
         }
-
-        updates.forEach(update => task[update] = req.body[update]);
+        updates.forEach(update => task[update] = <typeof Task>req.body[update]);
         await task.save();
-
         res.json({
             message: "Task Updated Successfully",
-        })
+        });
     }
-    catch(err){
-        res.status(500).send({error: err});
+    catch (err) {
+        res.status(500).send({ error: err });
     }
-})
+});
 
 // delete a task by id
-router.delete('/:id', auth , async (req,res)=>{
+router.delete('/:id', auth, async (req: RequestWithUser, res: Response) => {
     const taskid = req.params.id;
-
-    try{
+    try {
         const task = await Task.findOneAndDelete({
             _id: taskid,
-            owner: req.user._id
+            owner: req.user?._id
         });
-        if(!task){
-            return res.status(404).json({message: "Task not found"});
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
         }
-        res.status(200).json({task, message: "Task Deleted Successfully"});
+        res.status(200).json({ message: "Task Deleted Successfully" });
     }
-    catch(err){
-        res.status(500).send({error: err});
+    catch (err) {
+        res.status(500).send({ error: err });
     }
-})
+});
 
-module.exports = router;
+export default router;

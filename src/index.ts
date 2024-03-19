@@ -1,13 +1,12 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+import express from 'express';
+import bodyParser from 'body-parser';
+import userRoutes from './routes/userRoutes';
+import taskRoutes from './routes/taskRoutes';
+import 'dotenv';
+import './db';
+import './redisdb';
+
 const app = express();
-const userRoutes = require('./routes/userRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-
-require('dotenv').config();
-
-require('./db');
-
 app.use(bodyParser.json());
 app.use('/users', userRoutes);
 app.use('/tasks', taskRoutes);
