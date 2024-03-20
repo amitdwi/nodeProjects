@@ -4,7 +4,6 @@ import userRoutes from './routes/userRoutes';
 import taskRoutes from './routes/taskRoutes';
 import 'dotenv';
 import './db';
-import './redisdb';
 
 const app = express();
 app.use(bodyParser.json());
